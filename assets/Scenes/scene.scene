@@ -211,7 +211,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "sunPoint": 50,
+    "sunPoint": 100,
     "sunLabel": {
       "__id__": 6
     },
