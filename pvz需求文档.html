@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>植物大战僵尸 (Cocos版) - 需求分析文档</title>
+    <style>
+        :root {
+            --pvz-green: #5ca027;
+            --pvz-dark-green: #3a6b12;
+            --pvz-brown: #6b4c1e;
+            --bg-color: #f4f4f4;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --text-light: #666;
+            --accent: #d32f2f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+
+        /* Sidebar */
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--pvz-dark-green); color: white; position: fixed; height: 100vh; overflow-y: auto; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar h2 { margin-bottom: 30px; font-size: 1.5rem; text-align: center; border-bottom: 2px solid var(--pvz-green); padding-bottom: 10px; }
+        .nav-link { display: block; padding: 12px 15px; color: #eee; text-decoration: none; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--pvz-green); font-weight: bold; }
+
+        /* Main Content */
+        .main-content { margin-left: 250px; flex: 1; padding: 40px; }
+        section { background: var(--card-bg); margin-bottom: 30px; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); scroll-margin-top: 20px; }
+        
+        h1 { color: var(--pvz-dark-green); margin-bottom: 10px; }
+        h2 { color: var(--pvz-brown); border-left: 5px solid var(--pvz-green); padding-left: 15px; margin: 25px 0 15px 0; }
+        h3 { color: var(--text-main); margin: 15px 0 10px 0; }
+        
+        ul { margin-left: 20px; margin-bottom: 15px; }
+        li { margin-bottom: 5px; }
+        p { margin-bottom: 15px; }
+
+        /* Tables & Grid */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: var(--pvz-green); color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* Entity Cards */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .entity-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; background: #fff; transition: transform 0.2s; border-top: 4px solid var(--pvz-green); }
+        .entity-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .entity-card h4 { color: var(--pvz-dark-green); display: flex; justify-content: space-between; align-items: center; }
+        .tag { font-size: 0.8em; padding: 2px 8px; border-radius: 10px; background: #eee; color: #555; }
+        .zombie-card { border-top-color: var(--accent); }
+        .zombie-card h4 { color: var(--accent); }
+
+        /* Technical Code Blocks */
+        code { background: #eee; padding: 2px 5px; border-radius: 3px; font-family: Consolas, monospace; color: #d63384; }
+        pre { background: #2d2d2d; color: #ccc; padding: 15px; border-radius: 5px; overflow-x: auto; margin: 15px 0; }
+
+        /* Footer */
+        footer { text-align: center; margin-top: 50px; color: var(--text-light); font-size: 0.9em; }
+
+        /* Tabs */
+        .tab-container { margin-top: 20px; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #f1f1f1; margin-right: 5px; border-radius: 5px 5px 0 0; }
+        .tab.active { background: var(--pvz-green); color: white; font-weight: bold; }
+        .tab-content { display: none; padding: 20px 0; }
+        .tab-content.active { display: block; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <h2>PvZ 需求分析</h2>
+        <nav>
+            <a href="#overview" class="nav-link active" onclick="activateLink(this)">1. 项目概况</a>
+            <a href="#gameplay" class="nav-link" onclick="activateLink(this)">2. 核心玩法逻辑</a>
+            <a href="#entities" class="nav-link" onclick="activateLink(this)">3. 实体设计 (植物/僵尸)</a>
+            <a href="#uiux" class="nav-link" onclick="activateLink(this)">4. UI 与 交互</a>
+            <a href="#technical" class="nav-link" onclick="activateLink(this)">5. Cocos 技术架构</a>
+            <a href="#assets" class="nav-link" onclick="activateLink(this)">6. 资源需求表</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <section id="overview">
+            <h1>植物大战僵尸 (Cocos Creator 复刻版)</h1>
+            <p><strong>目标：</strong> 使用 Cocos Creator 3.x 引擎，构建一个核心玩法完整的塔防游戏 Demo。</p>
+            <p><strong>平台：</strong> Web (H5) / Android / iOS</p>
+            
+            <h2>MVP (最小可行性产品) 范围</h2>
+            <ul>
+                <li>✅ <strong>地图：</strong> 经典的草地白天模式 (5行 x 9列)。</li>
+                <li>✅ <strong>植物：</strong> 至少实现 4 种基础植物 (向日葵、豌豆射手、坚果墙、土豆雷)。</li>
+                <li>✅ <strong>僵尸：</strong> 至少实现 3 种基础僵尸 (普通、路障、铁桶)。</li>
+                <li>✅ <strong>流程：</strong> 完整的 "开始游戏 -> 选卡 -> 战斗 -> 结算" 闭环。</li>
+            </ul>
+        </section>
+
+        <section id="gameplay">
+            <h1>2. 核心玩法逻辑</h1>
+            
+            <h2>基础规则</h2>
+            <table>
+                <tr>
+                    <th>机制</th>
+                    <th>详细描述</th>
+                </tr>
+                <tr>
+                    <td><strong>阳光系统 (Sun)</strong></td>
+                    <td>作为货币。来源：1. 天空自然掉落 (每10秒25点)；2. 向日葵生产 (每24秒25点)。点击拾取。</td>
+                </tr>
+                <tr>
+                    <td><strong>网格系统 (Grid)</strong></td>
+                    <td>5行 (Lane) x 9列 (Col)。每个格子只能种植一个植物 (南瓜头除外)。点击卡片后，拖拽或点击格子进行种植。</td>
+                </tr>
+                <tr>
+                    <td><strong>胜负判定</strong></td>
+                    <td><strong>胜利：</strong> 抵挡住所有波次的僵尸进攻。<br><strong>失败：</strong> 任意一只僵尸通过了最左侧的底线（且小推车已消耗）。</td>
+                </tr>
+            </table>
+
+            <h2>波次管理 (Wave System)</h2>
+            <p>游戏通过 <code>LevelManager</code> 控制节奏：</p>
+            <ul>
+                <li><strong>开局：</strong> 准备阶段，给予一定初始阳光。</li>
+                <li><strong>普通波：</strong> 少量僵尸零散出现。</li>
+                <li><strong>大波 (Flag Wave)：</strong> 出现 "一大波僵尸正在接近" 文字，僵尸数量激增。</li>
+                <li><strong>生成逻辑：</strong> 随机选择行，但在大波时需保证强度分布。</li>
+            </ul>
+        </section>
+
+        <section id="entities">
+            <h1>3. 实体设计</h1>
+            
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('plants')">植物图鉴 (Plants)</div>
+                    <div class="tab" onclick="switchTab('zombies')">僵尸图鉴 (Zombies)</div>
+                </div>
+
+                <!-- Plants Tab -->
+                <div id="plants" class="tab-content active">
+                    <div class="card-grid">
+                        <div class="entity-card">
+                            <h4>向日葵 (Sunflower) <span class="tag">生产</span></h4>
+                            <p><strong>阳光消耗：</strong> 50</p>
+                            <p><strong>冷却时间：</strong> 7.5秒</p>
+                            <p><strong>生命值：</strong> 300</p>
+                            <p><strong>功能：</strong> 每隔 24s 生成一个阳光对象 (25点)。</p>
+                            <p><strong>逻辑：</strong> 计时器触发 -> 实例化阳光 Prefab -> 播放动画。</p>
+                        </div>
+
+                        <div class="entity-card">
+                            <h4>豌豆射手 (Peashooter) <span class="tag">攻击</span></h4>
+                            <p><strong>阳光消耗：</strong> 100</p>
+                            <p><strong>冷却时间：</strong> 7.5秒</p>
+                            <p><strong>生命值：</strong> 300</p>
+                            <p><strong>功能：</strong> 检测本行前方是否有僵尸，若有，每 1.5s 发射一颗豌豆。</p>
+                            <p><strong>伤害：</strong> 20 / 发</p>
+                        </div>
+
+                        <div class="entity-card">
+                            <h4>坚果墙 (Wall-nut) <span class="tag">防御</span></h4>
+                            <p><strong>阳光消耗：</strong> 50</p>
+                            <p><strong>冷却时间：</strong> 30秒</p>
+                            <p><strong>生命值：</strong> 4000</p>
+                            <p><strong>功能：</strong> 纯肉盾，阻挡僵尸前进。</p>
+                            <p><strong>状态：</strong> 拥有 3 个损伤阶段的图片切换 (完好, 轻伤, 重伤)。</p>
+                        </div>
+
+                        <div class="entity-card">
+                            <h4>土豆雷 (Potato Mine) <span class="tag">陷阱</span></h4>
+                            <p><strong>阳光消耗：</strong> 25</p>
+                            <p><strong>冷却时间：</strong> 30秒</p>
+                            <p><strong>生命值：</strong> 300</p>
+                            <p><strong>功能：</strong> 种下后需要 15s 准备时间。准备好后，僵尸接触即爆炸。</p>
+                            <p><strong>伤害：</strong> 1800 (秒杀范围小)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zombies Tab -->
+                <div id="zombies" class="tab-content">
+                    <div class="card-grid">
+                        <div class="entity-card zombie-card">
+                            <h4>普通僵尸 (Normal) <span class="tag">基础</span></h4>
+                            <p><strong>生命值：</strong> 200 (10发豌豆)</p>
+                            <p><strong>移动速度：</strong> 约 4.7s / 格</p>
+                            <p><strong>攻击力：</strong> 100 / 秒 (啃食)</p>
+                            <p><strong>逻辑：</strong> 移动 -> 碰撞检测到植物 -> 切换为啃食状态 -> 植物死亡 -> 恢复移动。</p>
+                        </div>
+
+                        <div class="entity-card zombie-card">
+                            <h4>路障僵尸 (Conehead) <span class="tag">护甲</span></h4>
+                            <p><strong>本体生命：</strong> 200</p>
+                            <p><strong>防具生命：</strong> 370 (路障)</p>
+                            <p><strong>总生命：</strong> 570</p>
+                            <p><strong>特性：</strong> 受到伤害先扣除防具血量，防具坏掉后变为普通僵尸。</p>
+                        </div>
+
+                        <div class="entity-card zombie-card">
+                            <h4>铁桶僵尸 (Buckethead) <span class="tag">高防</span></h4>
+                            <p><strong>本体生命：</strong> 200</p>
+                            <p><strong>防具生命：</strong> 1100 (铁桶)</p>
+                            <p><strong>总生命：</strong> 1300</p>
+                            <p><strong>特性：</strong> 极难被普通攻击杀死，前期BOSS。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="uiux">
+            <h1>4. UI 与交互设计</h1>
+            
+            <h2>场景流转 (Scene Flow)</h2>
+            <ol>
+                <li><strong>StartScene:</strong> Logo, 点击开始, 选项设置。</li>
+                <li><strong>LevelSelectScene:</strong> 简单的关卡按钮 (1-1, 1-2...)。</li>
+                <li><strong>GameScene:</strong> 核心战斗场景。</li>
+            </ol>
+
+            <h2>GameScene HUD 布局</h2>
+            <ul>
+                <li><strong>左上角：</strong> 阳光计数器 (Sun Counter)。</li>
+                <li><strong>左侧/顶部：</strong> 植物卡槽 (Seed Bank)。显示卡片、阳光消耗、冷却遮罩 (CD Mask)。</li>
+                <li><strong>右上角：</strong> 菜单按钮 (暂停)。</li>
+                <li><strong>右下角/进度条：</strong> 关卡进度 (Level Progress Bar)，显示旗帜位置。</li>
+                <li><strong>中央：</strong> 5x9 网格层，处于 UI 层下方。</li>
+            </ul>
+
+            <h2>交互细节</h2>
+            <ul>
+                <li><strong>种植反馈：</strong> 拖拽植物时，在鼠标/手指位置显示半透明植物图标 (Ghost)。</li>
+                <li><strong>合法性检查：</strong> 如果阳光不足或CD未好，卡片变灰不可点击；如果格子已有植物，显示红色禁止标识。</li>
+                <li><strong>拾取反馈：</strong> 点击阳光，阳光飞向左上角计数器，数值增加。</li>
+            </ul>
+        </section>
+
+        <section id="technical">
+            <h1>5. Cocos 技术架构 (开发指南)</h1>
+            
+            <h2>目录结构建议</h2>
+            <pre>
+assets/
+  ├── Scripts/
+  │    ├── Core/ (GameManager, EventManager)
+  │    ├── Plants/ (PlantBase, Shooter, SunProducer)
+  │    ├── Zombies/ (ZombieBase, ZombieFSM)
+  │    ├── UI/
+  │    └── Utils/ (ObjectPool)
+  ├── Prefabs/
+  │    ├── Plants/
+  │    ├── Zombies/
+  │    ├── Bullets/
+  │    └── UI/
+  ├── Textures/
+  └── Animations/
+            </pre>
+
+            <h2>关键技术点</h2>
+            
+            <h3>1. 网格系统 (Grid System)</h3>
+            <p>不要使用物理碰撞来检测植物种植位置。建议将屏幕坐标转换为网格坐标。</p>
+            <code>let col = Math.floor((touchPos.x - offsetX) / tileWidth);</code>
+            
+            <h3>2. 有限状态机 (FSM) - 僵尸AI</h3>
+            <p>僵尸应包含以下状态，使用 <code>enum</code> 管理：</p>
+            <ul>
+                <li><code>WALK</code>: 修改 x 坐标移动。</li>
+                <li><code>EAT</code>: 停止移动，播放啃食动画，对 <code>currentTarget</code> 造成伤害。</li>
+                <li><code>DIE</code>: 播放死亡动画，回收节点。</li>
+            </ul>
+
+            <h3>3. 对象池 (Object Pool)</h3>
+            <p><strong>必须使用！</strong> 豌豆子弹、阳光、甚至僵尸的生成和销毁非常频繁。不要直接 <code>instantiate/destroy</code>。</p>
+            <p>使用 <code>NodePool</code> 来管理这些实体，提升性能。</p>
+
+            <h3>4. 碰撞检测</h3>
+            <p>使用 Cocos 的 <strong>BoxCollider2D</strong>。</p>
+            <ul>
+                <li><strong>分组 (Groups):</strong> Plant, Zombie, Bullet.</li>
+                <li><strong>关系:</strong> Bullet 撞 Zombie (触发伤害)；Zombie 撞 Plant (触发啃食)。</li>
+            </ul>
+            
+            <h3>5. 层级管理 (Z-Index)</h3>
+            <p>为了伪3D效果（遮挡关系），需要动态设置 <code>zIndex</code> 或 <code>setSiblingIndex</code>。通常 <code>zIndex = -y</code>，即Y轴越靠下的物体，渲染层级越高（挡住后面的物体）。</p>
+        </section>
+
+        <section id="assets">
+            <h1>6. 资源需求清单</h1>
+            <p>在开始开发前，你需要准备以下素材（可以使用网络开源素材或自己画像素画）：</p>
+            <ul>
+                <li><strong>背景图：</strong> 白天草地 (单张大图 或 TileMap)。</li>
+                <li><strong>UI素材：</strong> 卡槽栏，植物卡片(亮/暗)，阳光图标，铲子图标，暂停面板。</li>
+                <li><strong>植物动画 (Spine/序列帧)：</strong> 待机(Idle)，攻击(Attack)，生成阳光。</li>
+                <li><strong>僵尸动画 (Spine/序列帧)：</strong> 行走，吃，掉头(可选)，死亡(普通死/炸死)。</li>
+                <li><strong>音效：</strong> BGM，种植声，收集阳光声，豌豆发射声，击中声，僵尸啃食声，僵尸呻吟。</li>
+            </ul>
+        </section>
+
+        <footer>
+            Generated for Cocos Creator PvZ Replication Project | 2023
+        </footer>
+    </div>
+</div>
+
+<script>
+    // 简单的 Tab 切换逻辑
+    function switchTab(tabId) {
+        // 隐藏所有内容
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+        // 显示选中的内容
+        document.getElementById(tabId).classList.add('active');
+        // 高亮 Tab 按钮 (通过遍历找到对应的按钮，这里简化处理)
+        const tabs = document.querySelectorAll('.tab');
+        if(tabId === 'plants') tabs[0].classList.add('active');
+        else tabs[1].classList.add('active');
+    }
+
+    // 侧边栏高亮
+    function activateLink(element) {
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
