@@ -1,13 +1,17 @@
 // assets/Scripts/Plants/PeaBullet.ts
-import { _decorator, Component, Node, Vec3, UITransform, view } from 'cc';
+import { _decorator, Component, Node, Vec3, UITransform, view, Collider2D, Contact2DType, IPhysics2DContact } from 'cc';
+import { Zombie } from '../Zombie/Zombie'; //僵尸
 const { ccclass, property } = _decorator;
 
 @ccclass('PeaBullet')
 export class PeaBullet extends Component {
-    
+
     // 子弹飞行速度
     @property
-    private speed: number = 500; 
+    private speed: number = 500;
+
+    @property
+    private damage: number = 20; // 子弹伤害
 
     // 屏幕右边界（用于销毁）
     private rightBorder: number = 0;
@@ -16,6 +20,14 @@ export class PeaBullet extends Component {
         // 获取屏幕可见区域的宽度作为销毁边界
         const visibleSize = view.getVisibleSize();
         this.rightBorder = visibleSize.width / 2 + 100; // 稍微宽一点
+
+        //注册碰撞
+        const collider = this.getComponent(Collider2D);
+        
+        if (collider) {
+            collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);  
+             collider.group = 2;
+        }
     }
 
     protected update(dt: number) {
@@ -32,6 +44,12 @@ export class PeaBullet extends Component {
         }
     }
 
-    // TODO: 碰撞检测逻辑（碰到僵尸）通常用 Collider 组件实现
-    // onTriggerEnter...
+    private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null){
+          const zombie = otherCollider.node.getComponent(Zombie);
+          if (zombie) {
+               zombie.takeDamage(this.damage);
+               this.node.destroy(); 
+          }
+    }
+
 }

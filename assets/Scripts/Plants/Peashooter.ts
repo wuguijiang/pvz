@@ -1,6 +1,6 @@
 // assets/Scripts/Plants/Peashooter.ts
 
-import { _decorator, Component, Node, Animation, Prefab, instantiate, UITransform, Vec3, director } from 'cc';
+import { _decorator, Component, Node, Animation, Prefab, instantiate, UITransform, Vec3, director, Collider2D } from 'cc';
 // 引入子弹脚本（如果需要引用类型，不需要可以不引）
 import { PeaBullet } from './PeaBullet'; 
 const { ccclass, property } = _decorator;
@@ -22,6 +22,13 @@ export class Peashooter extends Component {
     private attackInterval: number = 1.4;
 
     protected start() {
+          // 获取碰撞体组件
+        const collider = this.getComponent(Collider2D);
+          if (collider) {
+           
+            collider.group = 1;
+            }
+
         if (!this.anim) this.anim = this.getComponent(Animation);
         
         // 默认播放待机
